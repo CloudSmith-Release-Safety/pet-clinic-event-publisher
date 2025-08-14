@@ -1,0 +1,126 @@
+{
+  "org_name": "CloudSmith-Release-Safety",
+  "repo_name": "pet-clinic-event-publisher",
+  "repo_url": "https://github.com/CloudSmith-Release-Safety/pet-clinic-event-publisher",
+  "infrastructure_providers": [
+    {
+      "provider_id": "pet_clinic_sqs_queue",
+      "resource_type": "SQS",
+      "resource_identifier": "https://sqs.us-east-1.amazonaws.com/123456789012/pet-clinic-reports",
+      "file_path": "N/A",
+      "infrastructure_type": "N/A",
+      "description": "SQS queue for publishing pet clinic reports (referenced but not defined in this repository)",
+      "interfaces": [
+        {
+          "interface_type": "queue",
+          "endpoint_pattern": "https://sqs.${region}.amazonaws.com/${account}/pet-clinic-reports",
+          "operations": ["SendMessage"],
+          "authentication": "IAM"
+        }
+      ],
+      "configuration": {
+        "supports_fifo": true,
+        "supports_delay_seconds": true
+      },
+      "provider_type": "external"
+    }
+  ],
+  "application_consumers": [
+    {
+      "consumer_id": "pet_clinic_report_publisher",
+      "component_type": "class",
+      "file_path": "src/PetClinicReportPublisher.java",
+      "language": "Java",
+      "description": "Java class that publishes PetClinicReport objects to Amazon SQS",
+      "resource_discovery": {
+        "method": "constructor parameter",
+        "configuration_files": []
+      },
+      "authentication": {
+        "method": "implicit AWS SDK authentication",
+        "role_references": []
+      },
+      "sdk_usage": {
+        "sdk_type": "AWS SDK for Java",
+        "clients": ["AmazonSQS"]
+      },
+      "package_dependencies": [
+        "com.amazonaws.services.sqs.AmazonSQS",
+        "com.amazonaws.services.sqs.AmazonSQSClientBuilder",
+        "com.amazonaws.services.sqs.model.SendMessageRequest",
+        "com.amazonaws.services.sqs.model.SendMessageResult"
+      ],
+      "internal_dependencies": [],
+      "external_dependencies": [
+        {
+          "resource_type": "SQS",
+          "resource_name": "pet-clinic-reports",
+          "repository": "unknown"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "connection_id": "publisher_to_sqs_normal",
+      "consumer_id": "pet_clinic_report_publisher",
+      "provider_id": "pet_clinic_sqs_queue",
+      "provider_resource_type": "SQS",
+      "operation": "sendMessage",
+      "access_type": "write",
+      "description": "Publishes pet clinic reports to an SQS queue",
+      "code_snippet": "SendMessageRequest sendMessageRequest = new SendMessageRequest()\n        .withQueueUrl(queueUrl)\n        .withMessageBody(reportJson);\n\n// Add FIFO queue attributes if the queue URL ends with .fifo\nif (queueUrl.endsWith(\".fifo\")) {\n    sendMessageRequest.withMessageDeduplicationId(messageDeduplicationId)\n                      .withMessageGroupId(messageGroupId);\n}\n\n// Send the message\nSendMessageResult result = sqsClient.sendMessage(sendMessageRequest);",
+      "source_file_path": "src/PetClinicReportPublisher.java",
+      "target_file_path": "N/A",
+      "configuration_source": "constructor parameter",
+      "criticality": "high",
+      "connection_type": "direct",
+      "cross_repo": true,
+      "target_repo": "unknown"
+    },
+    {
+      "connection_id": "publisher_to_sqs_delayed",
+      "consumer_id": "pet_clinic_report_publisher",
+      "provider_id": "pet_clinic_sqs_queue",
+      "provider_resource_type": "SQS",
+      "operation": "sendMessage",
+      "access_type": "write",
+      "description": "Publishes pet clinic reports to an SQS queue with a specified delay",
+      "code_snippet": "SendMessageRequest sendMessageRequest = new SendMessageRequest()\n        .withQueueUrl(queueUrl)\n        .withMessageBody(reportJson)\n        .withDelaySeconds(delaySeconds);\n\n// Add FIFO queue attributes if the queue URL ends with .fifo\nif (queueUrl.endsWith(\".fifo\")) {\n    sendMessageRequest.withMessageDeduplicationId(UUID.randomUUID().toString())\n                      .withMessageGroupId(\"pet-clinic-reports\");\n}\n\n// Send the message\nSendMessageResult result = sqsClient.sendMessage(sendMessageRequest);",
+      "source_file_path": "src/PetClinicReportPublisher.java",
+      "target_file_path": "N/A",
+      "configuration_source": "constructor parameter",
+      "criticality": "high",
+      "connection_type": "direct",
+      "cross_repo": true,
+      "target_repo": "unknown"
+    }
+  ],
+  "architecture": {
+    "application_type": "library",
+    "infrastructure_pattern": "event-driven",
+    "deployment_approach": "library integration",
+    "configuration_management": "constructor-based configuration",
+    "critical_paths": [
+      {
+        "path_name": "report_publishing",
+        "description": "Publishing pet clinic reports to an SQS queue for downstream processing",
+        "involved_components": ["pet_clinic_report_publisher", "pet_clinic_sqs_queue"]
+      }
+    ],
+    "security_model": {
+      "authentication": "AWS SDK default credential provider chain",
+      "authorization": "IAM permissions required for SQS:SendMessage operation"
+    },
+    "cross_repo_dependencies": {
+      "provides_to": [],
+      "consumes_from": [
+        {
+          "repository": "unknown",
+          "resources": ["pet-clinic-reports SQS queue"]
+        }
+      ],
+      "shared_infrastructure": true
+    }
+  }
+}
