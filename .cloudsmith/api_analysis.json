@@ -3,24 +3,5 @@
   "repo_name": "pet-clinic-event-publisher",
   "repo_url": "https://github.com/CloudSmith-Release-Safety/pet-clinic-event-publisher",
   "provided_apis": [],
-  "consumed_apis": [
-    {
-      "type": "rest",
-      "service": "AmazonSQS",
-      "endpoint": "/sqs",
-      "method": "POST",
-      "description": "Publishes pet clinic reports to an Amazon SQS queue",
-      "file_path": "src/PetClinicReportPublisher.java",
-      "request_payload": {
-        "QueueUrl": "string",
-        "MessageBody": "string",
-        "DelaySeconds": "integer",
-        "MessageDeduplicationId": "string",
-        "MessageGroupId": "string"
-      },
-      "expected_response": {
-        "MessageId": "string"
-      }
-    }
-  ]
+  "consumed_apis": []
 }
