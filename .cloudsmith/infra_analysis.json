@@ -20,7 +20,8 @@
       ],
       "configuration": {
         "supports_fifo": true,
-        "supports_delay_seconds": true
+        "supports_delay_seconds": true,
+        "max_delay_seconds": 900
       },
       "provider_type": "external"
     }
@@ -34,7 +35,7 @@
       "description": "Java class that publishes PetClinicReport objects to Amazon SQS",
       "resource_discovery": {
         "method": "constructor parameter",
-        "configuration_files": []
+        "environment_variables": []
       },
       "authentication": {
         "method": "implicit AWS SDK authentication",
@@ -42,7 +43,8 @@
       },
       "sdk_usage": {
         "sdk_type": "AWS SDK for Java",
-        "clients": ["AmazonSQS"]
+        "clients": ["AmazonSQS"],
+        "sdk_version": "unspecified"
       },
       "package_dependencies": [
         "com.amazonaws.services.sqs.AmazonSQS",
